@@ -1,6 +1,6 @@
 {
   "name": "create-xpressforge",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Production-ready Node.js + Express project scaffolder — MVC, Modular, Layered structures with DB, Auth & more",
   "author": "Hammad Sadi <hammad.sadi@yahoo.com>",
   "license": "MIT",
