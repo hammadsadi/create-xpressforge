@@ -3,17 +3,15 @@ export function generateAppJs(answers) {
 
   const imports = [
     `import express from 'express';`,
-    extras.includes('cors')      ? `import cors from 'cors';`                   : '',
-    extras.includes('helmet')    ? `import helmet from 'helmet';`               : '',
-    extras.includes('morgan')    ? `import morgan from 'morgan';`               : '',
+    extras.includes('cors')      ? `import cors from 'cors';`                    : '',
+    extras.includes('helmet')    ? `import helmet from 'helmet';`                : '',
+    extras.includes('morgan')    ? `import morgan from 'morgan';`                : '',
     extras.includes('rateLimit') ? `import rateLimit from 'express-rate-limit';` : '',
     extras.includes('swagger')   ? `import swaggerUi from 'swagger-ui-express';\nimport { swaggerSpec } from './config/swagger.js';` : '',
     database !== 'none'          ? `import { connectDB } from './config/db.js';` : '',
     `import { errorHandler } from './middlewares/errorHandler.js';`,
     `import { notFound } from './middlewares/notFound.js';`,
-    structure === 'mvc'      ? `import routes from './routes/index.js';`   : '',
-    structure === 'modular'  ? `import routes from './routes/index.js';`   : '',
-    structure === 'layered'  ? `import routes from './routes/index.js';`   : '',
+    `import routes from './routes/index.js';`,
   ].filter(Boolean).join('\n');
 
   const dbInit = database !== 'none' ? `\n// Connect to database\nconnectDB();\n` : '';

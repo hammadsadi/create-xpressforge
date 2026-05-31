@@ -47,6 +47,14 @@ export async function generateProject(answers, targetDir) {
     // 7. server.js entry
     await fs.writeFile(path.join(targetDir, `server.${ext}`), serverContent(answers));
 
+    // 7b. Swagger config (only if swagger selected)
+    if (answers.extras.includes('swagger')) {
+      await fs.writeFile(
+        path.join(targetDir, 'src', 'config', `swagger.${ext}`),
+        swaggerConfigContent(answers)
+      );
+    }
+
     // 8. DB config
     if (answers.database !== 'none') {
       spinner.text = 'Setting up database connection...';
@@ -127,24 +135,52 @@ coverage/
 }
 
 function serverContent(answers) {
-  const ext = answers.language === 'ts' ? "import app from './src/app.js';" : "import app from './src/app.js';";
-  return `${ext}
-import { env } from './src/config/env.js';
+  const ext = answers.language === 'ts' ? 'ts' : 'js';
+  return `import 'dotenv/config';
+import app from './src/app.js';
 
-const PORT = env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 app.listen(PORT, () => {
-  console.log(\`Server running on http://localhost:\${PORT}\`);
-  console.log(\`Environment: \${env.NODE_ENV}\`);
+  console.log(\`✅ Server running on http://localhost:\${PORT}\`);
+  console.log(\`📦 Environment: \${NODE_ENV}\`);
 });
+`;
+}
+
+function swaggerConfigContent(answers) {
+  return `import swaggerJsdoc from 'swagger-jsdoc';
+
+const options = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: '${answers.projectName} API',
+      version: '1.0.0',
+      description: 'API documentation for ${answers.projectName}',
+    },
+    servers: [
+      { url: \`http://localhost:\${process.env.PORT || 3000}/api/v1\`, description: 'Development' },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      },
+    },
+  },
+  apis: ['./src/routes/*.js'],
+};
+
+export const swaggerSpec = swaggerJsdoc(options);
 `;
 }
 
 function envConfigContent(answers) {
   return `export const env = {
-  PORT: process.env.PORT || 3000,
+  PORT:     process.env.PORT     || 3000,
   NODE_ENV: process.env.NODE_ENV || 'development',
-${answers.database === 'mongodb' ? `  MONGO_URI: process.env.MONGO_URI,\n` : ''}${answers.database === 'postgresql' || answers.database === 'mysql' ? `  DATABASE_URL: process.env.DATABASE_URL,\n` : ''}${answers.auth === 'jwt' ? `  JWT_SECRET: process.env.JWT_SECRET,\n  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',\n  JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,\n  JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || '30d',\n` : ''}};
+${answers.database === 'mongodb'                                         ? `  MONGO_URI:              process.env.MONGO_URI,\n`                       : ''}${answers.database === 'postgresql' || answers.database === 'mysql'    ? `  DATABASE_URL:           process.env.DATABASE_URL,\n`                    : ''}${answers.auth === 'jwt'                                                 ? `  JWT_SECRET:             process.env.JWT_SECRET,\n  JWT_EXPIRES_IN:         process.env.JWT_EXPIRES_IN         || '7d',\n  JWT_REFRESH_SECRET:     process.env.JWT_REFRESH_SECRET,\n  JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || '30d',\n` : ''}};
 `;
 }
 
