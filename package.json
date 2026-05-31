@@ -1,0 +1,47 @@
+{
+  "name": "create-xpressforge",
+  "version": "1.0.0",
+  "description": "Production-ready Node.js + Express project scaffolder — MVC, Modular, Layered structures with DB, Auth & more",
+  "author": "Hammad Sadi <hammad.sadi@yahoo.com>",
+  "license": "MIT",
+  "bin": {
+    "create-xpressforge": "./bin/cli.js"
+  },
+  "main": "./src/index.js",
+  "keywords": [
+    "express",
+    "nodejs",
+    "scaffold",
+    "cli",
+    "mvc",
+    "modular",
+    "boilerplate",
+    "generator",
+    "production",
+    "mongodb",
+    "postgresql",
+    "jwt"
+  ],
+  "files": [
+    "bin",
+    "src"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^5.0.0",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.1",
+    "fs-extra": "^11.2.0",
+    "gradient-string": "^2.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hammadsadi/create-xpressforge"
+  },
+  "homepage": "https://github.com/hammadsadi/create-xpressforge#readme",
+  "bugs": {
+    "url": "https://github.com/hammadsadi/create-xpressforge/issues"
+  }
+}
