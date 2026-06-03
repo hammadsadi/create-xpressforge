@@ -1,122 +1,138 @@
-import fs from 'fs-extra';
-import path from 'path';
-import chalk from 'chalk';
-import ora from 'ora';
-import { generatePackageJson } from './packageJsonGenerator.js';
-import { generateEnv } from './envGenerator.js';
-import { generateAppJs } from './appGenerator.js';
-import { generateDbConfig } from './dbGenerator.js';
-import { generateAuthFiles } from './authGenerator.js';
-import { generateStructure } from './structureGenerator.js';
-import { generateReadme } from './readmeGenerator.js';
+import fs from "fs-extra";
+import path from "path";
+import chalk from "chalk";
+import ora from "ora";
+import { generatePackageJson } from "./packageJsonGenerator.js";
+import { generateEnv } from "./envGenerator.js";
+import { generateAppJs } from "./appGenerator.js";
+import { generateDbConfig } from "./dbGenerator.js";
+import { generateAuthFiles } from "./authGenerator.js";
+import { generateStructure } from "./structureGenerator.js";
+import { generateReadme } from "./readmeGenerator.js";
 
 export async function generateProject(answers, targetDir) {
-  const spinner = ora({ text: 'Creating project...', color: 'cyan' }).start();
+  const spinner = ora({ text: "Creating project...", color: "cyan" }).start();
 
   try {
-    // 1. Check if directory exists
+    // Check if directory exists
     if (await fs.pathExists(targetDir)) {
-      spinner.fail(chalk.red(`Directory "${answers.projectName}" already exists!`));
+      spinner.fail(
+        chalk.red(`Directory "${answers.projectName}" already exists!`),
+      );
       process.exit(1);
     }
 
     await fs.ensureDir(targetDir);
-    spinner.text = 'Scaffolding folder structure...';
+    spinner.text = "Scaffolding folder structure...";
 
-    // 2. Generate folder structure based on chosen pattern
+    // Generate folder structure based on chosen pattern
     await generateStructure(answers, targetDir);
-    spinner.text = 'Writing configuration files...';
+    spinner.text = "Writing configuration files...";
 
-    // 3. package.json
+    //  package.json
     const pkg = generatePackageJson(answers);
-    await fs.writeJson(path.join(targetDir, 'package.json'), pkg, { spaces: 2 });
+    await fs.writeJson(path.join(targetDir, "package.json"), pkg, {
+      spaces: 2,
+    });
 
-    // 4. .env + .env.example
+    //  .env + .env.example
     const envContent = generateEnv(answers);
-    await fs.writeFile(path.join(targetDir, '.env'), envContent);
-    await fs.writeFile(path.join(targetDir, '.env.example'), envContent.replace(/=.+/gm, '='));
+    await fs.writeFile(path.join(targetDir, ".env"), envContent);
+    await fs.writeFile(
+      path.join(targetDir, ".env.example"),
+      envContent.replace(/=.+/gm, "="),
+    );
 
-    // 5. .gitignore
-    await fs.writeFile(path.join(targetDir, '.gitignore'), gitignoreContent());
+    //  .gitignore
+    await fs.writeFile(path.join(targetDir, ".gitignore"), gitignoreContent());
 
-    // 6. app.js / app.ts
+    //  app.js / app.ts
     const appContent = generateAppJs(answers);
-    const ext = answers.language === 'ts' ? 'ts' : 'js';
-    await fs.writeFile(path.join(targetDir, 'src', `app.${ext}`), appContent);
+    const ext = answers.language === "ts" ? "ts" : "js";
+    await fs.writeFile(path.join(targetDir, "src", `app.${ext}`), appContent);
 
-    // 7. server.js entry
-    await fs.writeFile(path.join(targetDir, `server.${ext}`), serverContent(answers));
+    //  server.js entry
+    await fs.writeFile(
+      path.join(targetDir, `server.${ext}`),
+      serverContent(answers),
+    );
 
-    // 7b. Swagger config (only if swagger selected)
-    if (answers.extras.includes('swagger')) {
+    //  Swagger config (only if swagger selected)
+    if (answers.extras.includes("swagger")) {
       await fs.writeFile(
-        path.join(targetDir, 'src', 'config', `swagger.${ext}`),
-        swaggerConfigContent(answers)
+        path.join(targetDir, "src", "config", `swagger.${ext}`),
+        swaggerConfigContent(answers),
       );
     }
 
-    // 8. DB config
-    if (answers.database !== 'none') {
-      spinner.text = 'Setting up database connection...';
+    //  DB config
+    if (answers.database !== "none") {
+      spinner.text = "Setting up database connection...";
       const dbContent = generateDbConfig(answers);
-      await fs.writeFile(path.join(targetDir, 'src', 'config', `db.${ext}`), dbContent);
+      await fs.writeFile(
+        path.join(targetDir, "src", "config", `db.${ext}`),
+        dbContent,
+      );
     }
 
-    // 9. env config
+    //  env config
     await fs.writeFile(
-      path.join(targetDir, 'src', 'config', `env.${ext}`),
-      envConfigContent(answers)
+      path.join(targetDir, "src", "config", `env.${ext}`),
+      envConfigContent(answers),
     );
 
-    // 10. Auth files
-    if (answers.auth !== 'none') {
-      spinner.text = 'Generating auth files...';
+    //  Auth files
+    if (answers.auth !== "none") {
+      spinner.text = "Generating auth files...";
       await generateAuthFiles(answers, targetDir, ext);
     }
 
-    // 11. Utils
+    //  Utils
     await fs.writeFile(
-      path.join(targetDir, 'src', 'utils', `apiResponse.${ext}`),
-      apiResponseContent()
+      path.join(targetDir, "src", "utils", `apiResponse.${ext}`),
+      apiResponseContent(),
     );
     await fs.writeFile(
-      path.join(targetDir, 'src', 'utils', `logger.${ext}`),
-      loggerContent()
+      path.join(targetDir, "src", "utils", `logger.${ext}`),
+      loggerContent(),
     );
     await fs.writeFile(
-      path.join(targetDir, 'src', 'middlewares', `errorHandler.${ext}`),
-      errorHandlerContent()
+      path.join(targetDir, "src", "middlewares", `errorHandler.${ext}`),
+      errorHandlerContent(),
     );
     await fs.writeFile(
-      path.join(targetDir, 'src', 'middlewares', `notFound.${ext}`),
-      notFoundContent()
+      path.join(targetDir, "src", "middlewares", `notFound.${ext}`),
+      notFoundContent(),
     );
 
-    // 12. TypeScript config
-    if (answers.language === 'ts') {
-      await fs.writeJson(path.join(targetDir, 'tsconfig.json'), tsConfig(), { spaces: 2 });
+    //  TypeScript config
+    if (answers.language === "ts") {
+      await fs.writeJson(path.join(targetDir, "tsconfig.json"), tsConfig(), {
+        spaces: 2,
+      });
     }
 
-    // 13. README
-    spinner.text = 'Generating README...';
+    //  README
+    spinner.text = "Generating README...";
     const readme = generateReadme(answers);
-    await fs.writeFile(path.join(targetDir, 'README.md'), readme);
+    await fs.writeFile(path.join(targetDir, "README.md"), readme);
 
-    spinner.succeed(chalk.green('Project created successfully!'));
+    spinner.succeed(chalk.green("Project created successfully!"));
 
     // Success message
-    console.log('\n' + chalk.bold('  Next steps:\n'));
+    console.log("\n" + chalk.bold("  Next steps:\n"));
     console.log(chalk.cyan(`  cd ${answers.projectName}`));
-    console.log(chalk.cyan('  npm install'));
-    if (answers.database === 'postgresql' || answers.database === 'mysql') {
-      console.log(chalk.cyan('  npx prisma migrate dev'));
+    console.log(chalk.cyan("  npm install"));
+    if (answers.database === "postgresql" || answers.database === "mysql") {
+      console.log(chalk.cyan("  npx prisma migrate dev"));
     }
-    console.log(chalk.cyan('  cp .env.example .env  # fill in your values'));
-    console.log(chalk.cyan('  npm run dev\n'));
-    console.log(chalk.dim('  Happy building! — create-xpressforge by Hammad Sadi\n'));
-
+    console.log(chalk.cyan("  cp .env.example .env  # fill in your values"));
+    console.log(chalk.cyan("  npm run dev\n"));
+    console.log(
+      chalk.dim("  Happy building! — create-xpressforge by Hammad Sadi\n"),
+    );
   } catch (err) {
-    spinner.fail(chalk.red('Failed to create project'));
+    spinner.fail(chalk.red("Failed to create project"));
     await fs.remove(targetDir).catch(() => {});
     throw err;
   }
@@ -135,7 +151,7 @@ coverage/
 }
 
 function serverContent(answers) {
-  const ext = answers.language === 'ts' ? 'ts' : 'js';
+  const ext = answers.language === "ts" ? "ts" : "js";
   return `import 'dotenv/config';
 import app from './src/app.js';
 
@@ -180,7 +196,7 @@ function envConfigContent(answers) {
   return `export const env = {
   PORT:     process.env.PORT     || 3000,
   NODE_ENV: process.env.NODE_ENV || 'development',
-${answers.database === 'mongodb'                                         ? `  MONGO_URI:              process.env.MONGO_URI,\n`                       : ''}${answers.database === 'postgresql' || answers.database === 'mysql'    ? `  DATABASE_URL:           process.env.DATABASE_URL,\n`                    : ''}${answers.auth === 'jwt'                                                 ? `  JWT_SECRET:             process.env.JWT_SECRET,\n  JWT_EXPIRES_IN:         process.env.JWT_EXPIRES_IN         || '7d',\n  JWT_REFRESH_SECRET:     process.env.JWT_REFRESH_SECRET,\n  JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || '30d',\n` : ''}};
+${answers.database === "mongodb" ? `  MONGO_URI:              process.env.MONGO_URI,\n` : ""}${answers.database === "postgresql" || answers.database === "mysql" ? `  DATABASE_URL:           process.env.DATABASE_URL,\n` : ""}${answers.auth === "jwt" ? `  JWT_SECRET:             process.env.JWT_SECRET,\n  JWT_EXPIRES_IN:         process.env.JWT_EXPIRES_IN         || '7d',\n  JWT_REFRESH_SECRET:     process.env.JWT_REFRESH_SECRET,\n  JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || '30d',\n` : ""}};
 `;
 }
 
@@ -291,11 +307,11 @@ function notFoundContent() {
 function tsConfig() {
   return {
     compilerOptions: {
-      target: 'ES2022',
-      module: 'ESNext',
-      moduleResolution: 'node',
-      outDir: './dist',
-      rootDir: './',
+      target: "ES2022",
+      module: "ESNext",
+      moduleResolution: "node",
+      outDir: "./dist",
+      rootDir: "./",
       strict: true,
       esModuleInterop: true,
       skipLibCheck: true,
@@ -305,7 +321,7 @@ function tsConfig() {
       declarationMap: true,
       sourceMap: true,
     },
-    include: ['src/**/*', 'server.ts'],
-    exclude: ['node_modules', 'dist'],
+    include: ["src/**/*", "server.ts"],
+    exclude: ["node_modules", "dist"],
   };
 }

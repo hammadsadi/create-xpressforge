@@ -1,18 +1,25 @@
 import { input, select, checkbox } from '@inquirer/prompts';
 import chalk from 'chalk';
 
-export async function askQuestions() {
+export async function askQuestions(nameArg) {
   console.log(chalk.bold('  Let\'s configure your project:\n'));
 
-  const projectName = await input({
-    message: 'Project name:',
-    default: 'my-express-app',
-    validate: (val) => {
-      if (!val.trim()) return 'Project name cannot be empty';
-      if (!/^[a-z0-9-_]+$/.test(val)) return 'Use lowercase letters, numbers, hyphens only';
-      return true;
-    },
-  });
+  // If name passed as CLI argument (npx create-xpressforge my-app), skip prompt
+  let projectName;
+  if (nameArg && /^[a-z0-9-_]+$/.test(nameArg)) {
+    projectName = nameArg;
+    console.log(chalk.dim(`  Project name: ${chalk.white(projectName)}\n`));
+  } else {
+    projectName = await input({
+      message: 'Project name:',
+      default: nameArg || 'my-express-app',
+      validate: (val) => {
+        if (!val.trim()) return 'Project name cannot be empty';
+        if (!/^[a-z0-9-_]+$/.test(val)) return 'Use lowercase letters, numbers, hyphens only';
+        return true;
+      },
+    });
+  }
 
   const structure = await select({
     message: 'Project structure:',

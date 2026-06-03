@@ -24,7 +24,11 @@ export async function run() {
   console.log(chalk.dim('  by Hammad Sadi\n'));
 
   try {
-    const answers = await askQuestions();
+    // npx create-xpressforge my-app
+    // process.argv = ['node', '/path/to/cli.js', 'my-app']
+    // find first arg that is not a flag and not the binary path
+    const nameArg = process.argv.slice(2).find(a => !a.startsWith('-')) || null;
+    const answers = await askQuestions(nameArg);
     const targetDir = path.resolve(process.cwd(), answers.projectName);
     await generateProject(answers, targetDir);
   } catch (err) {
